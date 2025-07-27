@@ -1,0 +1,99 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sparkgrep"
+version = "0.1.0a0"
+description = "Pre-commit hooks for Apache Spark development (Databricks, EMR, Dataproc, and more)"
+license = {text = "MIT"}
+authors = [
+    {name = "Leandro Kellermann de Oliveira", email = "lkellermann@leandroasaservice.com"},
+]
+readme = "README.md"
+
+keywords = ["spark", "databricks", "pre-commit", "code-quality", "linting"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "pre-commit>=3.0.0",
+    "ruff>=0.1.0",
+    "nbformat>=5.0.0",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/leandroasaservice/sparkgrep"
+Repository = "https://github.com/leandroasaservice/sparkgrep"
+Documentation = "https://github.com/leandroasaservice/sparkgrep/blob/main/README.md"
+"Bug Reports" = "https://github.com/leandroasaservice/sparkgrep/issues"
+"Source" = "https://github.com/leandroasaservice/sparkgrep"
+"Contributing" = "https://github.com/leandroasaservice/sparkgrep/blob/main/doc/CONTRIBUTING.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "coverage>=7.0.0",
+]
+
+[project.scripts]
+sparkgrep = "src.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--strict-markers",
+    "--disable-warnings",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

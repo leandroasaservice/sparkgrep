@@ -1,0 +1,12 @@
+-   id: sparkgrep
+    name: Check for useless Spark actions
+    description: Check for useless Spark actions like display(), .show(), .collect() without assignment, etc.
+    entry: sparkgrep
+    language: python
+    files: \.(py|ipynb)$
+    types_or: [python, jupyter]
+    require_serial: false
+    additional_dependencies: [nbformat>=5.0.0]
+    args: []
+    pass_filenames: true
+    minimum_pre_commit_version: 2.9.0

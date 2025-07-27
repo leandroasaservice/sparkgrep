@@ -1,0 +1,183 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  PYTHON: python3
+  VENV_DIR: .venv
+  SRC_DIR: src
+  TESTS_DIR: tests
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list
+
+  # Setup and Installation
+  setup:
+    desc: "Set up development environment"
+    cmds:
+      - "{{.PYTHON}} -m venv {{.VENV_DIR}}"
+      - "{{.VENV_DIR}}/bin/pip install --upgrade pip"
+      - task: install
+      - task: install:dev
+      - task: pre-commit:install
+
+  install:
+    desc: "Install package in development mode"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pip install -e ."
+
+  install:dev:
+    desc: "Install development dependencies"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pip install -e .[dev]"
+
+  # Testing
+  test:
+    desc: "Run tests"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pytest {{.TESTS_DIR}}/"
+
+  test:cov:
+    desc: "Run tests with coverage report"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pytest {{.TESTS_DIR}}/ --cov={{.SRC_DIR}} --cov-report=term-missing --cov-report=html"
+
+  # Code Quality
+  lint:
+    desc: "Run ruff linting (check only)"
+    cmds:
+      - "{{.VENV_DIR}}/bin/ruff check {{.SRC_DIR}}/"
+
+  lint:fix:
+    desc: "Run ruff linting with auto-fix"
+    cmds:
+      - "{{.VENV_DIR}}/bin/ruff check {{.SRC_DIR}}/ --fix"
+
+  format:
+    desc: "Format code with ruff"
+    cmds:
+      - "{{.VENV_DIR}}/bin/ruff format {{.SRC_DIR}}/"
+
+  format:check:
+    desc: "Check code formatting without making changes"
+    cmds:
+      - "{{.VENV_DIR}}/bin/ruff format {{.SRC_DIR}}/ --check"
+
+  quality:
+    desc: "Run all code quality checks"
+    deps:
+      - lint
+      - format:check
+      - test
+
+  fix:
+    desc: "Auto-fix linting and formatting issues"
+    cmds:
+      - task: lint:fix
+      - task: format
+
+  # Pre-commit
+  pre-commit:install:
+    desc: "Install pre-commit hooks"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pre-commit install"
+
+  pre-commit:run:
+    desc: "Run pre-commit on all files"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pre-commit run --all-files"
+
+  pre-commit:update:
+    desc: "Update pre-commit hook versions"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pre-commit autoupdate"
+
+  # Build and Package
+  build:
+    desc: "Build package distribution"
+    cmds:
+      - "{{.VENV_DIR}}/bin/python -m build"
+
+  build:clean:
+    desc: "Clean build artifacts and rebuild"
+    cmds:
+      - task: clean
+      - task: build
+
+  # Utility Tasks
+  clean:
+    desc: "Clean up build artifacts, cache files, and temporary files"
+    cmds:
+      - rm -rf build/
+      - rm -rf dist/
+      - rm -rf *.egg-info/
+      - rm -rf .pytest_cache/
+      - rm -rf htmlcov/
+      - rm -rf .coverage
+      - rm -rf .ruff_cache/
+      - rm -rf src/__pycache__/
+      - rm -rf tests/__pycache__/
+
+  clean:all:
+    desc: "Clean everything including virtual environment"
+    cmds:
+      - task: clean
+      - rm -rf {{.VENV_DIR}}/
+
+  # Development Helpers
+  run:sample:
+    desc: "Run sparkgrep on sample.py"
+    cmds:
+      - "{{.VENV_DIR}}/bin/sparkgrep sample.py"
+
+  shell:
+    desc: "Show command to activate virtual environment"
+    cmds:
+      - echo "To activate virtual environment run:"
+      - echo "source {{.VENV_DIR}}/bin/activate"
+
+  deps:update:
+    desc: "Update all dependencies to latest versions"
+    cmds:
+      - "{{.VENV_DIR}}/bin/pip install --upgrade pip"
+      - "{{.VENV_DIR}}/bin/pip install --upgrade -e .[dev]"
+
+  # CI/CD simulation
+  ci:
+    desc: "Run CI pipeline simulation (what CI would run)"
+    cmds:
+      - echo "=== Running CI Pipeline ==="
+      - task: quality
+      - task: build
+      - echo "=== CI Pipeline Complete ==="
+
+  # Release helpers
+  release:check:
+    desc: "Check if project is ready for release"
+    cmds:
+      - echo "=== Release Readiness Check ==="
+      - task: clean
+      - task: quality
+      - task: build
+      - echo "=== Release checks passed ==="
+
+  # Help and Info
+  info:
+    desc: "Show project information"
+    cmds:
+      - echo "=== SparkGrep Project Information ==="
+      - "{{.PYTHON}} --version"
+      - "{{.VENV_DIR}}/bin/pip --version"
+      - "{{.VENV_DIR}}/bin/sparkgrep --help"
+
+  env:
+    desc: "Show environment information"
+    cmds:
+      - echo "=== Environment Information ==="
+      - task --version
+      - pwd
+      - which {{.PYTHON}}
+      - ls -la {{.VENV_DIR}}/

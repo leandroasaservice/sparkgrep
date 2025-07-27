@@ -1,0 +1,48 @@
+# Sample .pre-commit-config.yaml file
+# Copy this to your project root and rename to .pre-commit-config.yaml
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.15
+    hooks:
+      - id: ruff
+        name: ruff (linter)
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        name: ruff (formatter)
+
+  - repo: local
+    hooks:
+      - id: sparkgrep
+        name: Check for useless Spark actions
+        description: Check for useless Spark actions like display(), .show(), .collect() without assignment, etc.
+        entry: sparkgrep
+        language: python
+        files: \.(py|ipynb)$
+        types_or: [python, jupyter]
+        require_serial: false
+        additional_dependencies: [nbformat>=5.0.0]
+                # Uncomment and modify the args below to add custom patterns:
+        # args: [
+        #   "--additional-patterns",
+        #   "print.*debug:Debug print statement",
+        #   "createDataFrame.*test:Test DataFrame creation",
+        #   "spark\.sql.*select \*:Select all from table",
+        #   "dbutils\.fs\.rm.*temp:Temporary file removal"
+        # ]
+        #
+        # To disable default patterns and only use custom ones:
+        # args: [
+        #   "--disable-default-patterns",
+        #   "--additional-patterns",
+        #   "your_custom_pattern:Your custom description"
+        # ]
+        args: []
+        pass_filenames: true
+
+  # Alternative: Use from a remote repository (when published)
+  # - repo: https://github.com/leandroasaservice/sparkgrep
+  #   rev: v0.1.0a0
+  #   hooks:
+  #     - id: sparkgrep
+  #       args: [--additional-patterns, 'custom_pattern:Custom description']

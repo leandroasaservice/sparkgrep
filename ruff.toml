@@ -1,0 +1,142 @@
+# Ruff configuration file
+# https://docs.astral.sh/ruff/
+
+# Exclude common directories and files
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    "htmlcov",
+    "build",
+    "dist",
+    "*.egg-info",
+    # Exclude tests from linting
+    "tests",
+]
+
+# Target Python 3.8+ to match project requirements
+target-version = "py38"
+
+# Set line length to match black default
+line-length = 88
+
+# Enable specific rule categories
+[lint]
+# Select rules to apply
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "D",      # pydocstyle
+    "UP",     # pyupgrade
+    "YTT",    # flake8-2020
+    "S",      # flake8-bandit
+    "BLE",    # flake8-blind-except
+    "FBT",    # flake8-boolean-trap
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "COM",    # flake8-commas
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez
+    "T10",    # flake8-debugger
+    "EM",     # flake8-errmsg
+    "FA",     # flake8-future-annotations
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "G",      # flake8-logging-format
+    "INP",    # flake8-no-pep420
+    "PIE",    # flake8-pie
+    "T20",    # flake8-print
+    "PYI",    # flake8-pyi
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RSE",    # flake8-raise
+    "RET",    # flake8-return
+    "SLF",    # flake8-self
+    "SLOT",   # flake8-slots
+    "SIM",    # flake8-simplify
+    "TID",    # flake8-tidy-imports
+    "TCH",    # flake8-type-checking
+    "INT",    # flake8-gettext
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate
+    "PD",     # pandas-vet
+    "PGH",    # pygrep-hooks
+    "PL",     # Pylint
+    "TRY",    # tryceratops
+    "FLY",    # flynt
+    "NPY",    # NumPy-specific rules
+    "PERF",   # Perflint
+    "FURB",   # refurb
+    "LOG",    # flake8-logging
+    "RUF",    # Ruff-specific rules
+    "C901",   # mccabe complexity
+]
+
+# Ignore specific rules that might be too strict for a CLI tool
+ignore = [
+    "D100",   # Missing docstring in public module
+    "D104",   # Missing docstring in public package
+    "D107",   # Missing docstring in __init__
+    "D200",   # One-line docstring should fit on one line
+    "D203",   # 1 blank line required before class docstring
+    "D212",   # Multi-line docstring summary should start at the second line
+    "D213",   # Multi-line docstring summary should start at the second line
+    "S101",   # Use of assert detected
+    "FBT001", # Boolean positional arg in function definition
+    "FBT002", # Boolean default arg in function definition
+    "A003",   # Class attribute shadows a python builtin
+    "PLR2004", # Magic value used in comparison
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "EM101",  # Exception must not use a string literal
+    "EM102",  # Exception must not use an f-string literal
+    "COM812", # Missing trailing comma (conflicts with formatter)
+    "ISC001", # Implicitly concatenated string literals (conflicts with formatter)
+    "T201",   # Print statements (needed for CLI output)
+    "T203",   # Print statements (needed for CLI output)
+    "BLE001", # Blind exception catch (sometimes needed for CLI error handling)
+    "PLC0415", # Import outside top-level (sometimes needed for optional deps)
+    "PTH123", # Path.open() vs open() (both are fine)
+    "PTH100", # Path.resolve() vs os.path.abspath() (legacy compatibility)
+    "PTH120", # Path.parent vs os.path.dirname() (legacy compatibility)
+    "FA100",  # Future annotations (optional for this project)
+    "RUF013", # Implicit Optional (allow for backwards compatibility)
+    "PIE810", # Multiple startswith calls (readability preference)
+]
+
+# Allow unfixable rules to prevent auto-fixes that might break code
+unfixable = [
+    "F401",   # Unused imports
+    "F841",   # Unused variables
+]
+
+# Set maximum cyclomatic complexity to 5 as requested
+[lint.mccabe]
+max-complexity = 5
+
+# Configure specific linting rules
+[lint.pylint]
+max-args = 6
+max-branches = 10
+max-returns = 6
+max-statements = 30
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.isort]
+known-first-party = ["src"]
+force-single-line = false
+lines-after-imports = 2
+
+# Formatting configuration (ruff can also format code)
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
