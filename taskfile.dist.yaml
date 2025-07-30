@@ -125,7 +125,7 @@ tasks:
     desc: "Clean everything including virtual environment"
     cmds:
       - task: clean
-      - rm -rf {{.VENV_DIR}}/
+      - rm -rf {{.VENV_DIR}}
 
   # Development Helpers
   run:sample:

@@ -51,13 +51,11 @@ dev = [
 ]
 
 [project.scripts]
-sparkgrep = "src.cli:main"
+sparkgrep = "sparkgrep.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
-
-
+where = ["src"]
+include = ["*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

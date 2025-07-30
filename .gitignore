@@ -173,3 +173,6 @@ Thumbs.db
 # User-customizable task configuration (copy from taskfile.dist.yaml)
 Taskfile.yml
 taskfile.yaml
+
+# Custom folders
+.ignore
