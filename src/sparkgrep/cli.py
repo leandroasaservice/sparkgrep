@@ -1,5 +1,3 @@
-"""Command-line interface for the Databricks actions checker."""
-
 import argparse
 import sys
 

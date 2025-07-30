@@ -1,14 +1,10 @@
-"""Pattern definitions for detecting useless Spark actions."""
-
 from typing import List, Tuple
 
 
 # Patterns to detect useless Spark actions
 USELESS_PATTERNS = [
-    # display() function calls (not in assignment or method chain)
-    (r"^\s*display\s*\(", "display() function call"),
-    # .display() method calls (not in assignment or method chain)
-    (r"^\s*\w+\.display\s*\(", ".display() method call"),
+    # display() function calls.
+    (r"\s*display\s*\(", "display() function or method call"),
     # .show() method calls (debugging leftover)
     (r"^\s*\w+\.show\s*\(", ".show() method call"),
     # .collect() without assignment (often inefficient debugging)
@@ -47,9 +43,12 @@ def build_patterns_list(
                 pattern, description = pattern_desc.split(":", 1)
                 patterns.append((pattern, description))
             else:
+                # TODO replace with log warning.
                 print(
-                    f"Warning: Invalid pattern format '{pattern_desc}'. "
-                    "Use 'pattern:description'"
+                    f"""
+                    Warning: Invalid pattern format '{pattern_desc}'.
+                    Use 'pattern:description'
+                    """
                 )
 
     return patterns

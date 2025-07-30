@@ -1,8 +1,6 @@
-"""Utility functions for file processing and line analysis."""
-
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 def read_file_safely(file_path: Path) -> List[str]:
@@ -17,7 +15,7 @@ def read_file_safely(file_path: Path) -> List[str]:
         return []
 
 
-def detect_docstring_start(line: str) -> str:
+def detect_docstring_start(line: str) -> Union[str, None]:
     """Detect if line starts a docstring and return the marker."""
     stripped_line = line.strip()
 

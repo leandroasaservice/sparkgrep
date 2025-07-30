@@ -1,5 +1,3 @@
-"""File processors for Python and Jupyter notebook files."""
-
 from pathlib import Path
 from typing import List, Tuple
 
