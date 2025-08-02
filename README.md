@@ -32,15 +32,13 @@ Add to your `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
-  - repo: local
-    hooks:
-      - id: sparkgrep
-        name: Check for useless Spark actions
-        entry: sparkgrep
-        language: python
-        files: \.(py|ipynb)$
-        types_or: [python, jupyter]
-        additional_dependencies: [nbformat>=5.0.0]
+ - repo: https://github.com/leandroasaservice/sparkgrep
+   rev: v0.1.0a0
+   hooks:
+   - id: sparkgrep
+     name: Check for debugging leftovers.
+     files: \.(py|ipynb)$
+
 ```
 
 ### Standalone Usage
