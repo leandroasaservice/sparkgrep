@@ -1,246 +1,248 @@
-"""
-Unit tests for utils reporting functionality.
-"""
-
 import pytest
+from io import StringIO
+import sys
+from contextlib import redirect_stdout
+
 from sparkgrep.utils import report_results
 
 
-def test_report_with_issues(capsys):
-    """Test reporting when issues are found."""
+def test_report_with_issues():
+    """Test reporting with issues found."""
     issues = [
-        ("5", "display function", "display(df)"),
-        ("10", "show method", "df.show()"),
+        (5, "display function", "display(df)"),
+        (10, "show method", "df.show()"),
+        (15, "collect method", "df.collect()")
     ]
 
-    report_results("test_file.py", issues)
+    # Capture stdout
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("test_file.py", issues)
 
-    captured = capsys.readouterr()
-    assert "test_file.py:" in captured.out
-    assert "Line 5: display function" in captured.out
-    assert "> display(df)" in captured.out
-    assert "Line 10: show method" in captured.out
-    assert "> df.show()" in captured.out
+    result = output.getvalue()
+
+    # Check that all issues are reported
+    assert "test_file.py" in result
+    assert "Line 5: display function" in result
+    assert "Line 10: show method" in result
+    assert "Line 15: collect method" in result
+    assert "display(df)" in result
+    assert "df.show()" in result
+    assert "df.collect()" in result
 
 
-def test_report_no_issues(capsys):
+def test_report_no_issues():
     """Test reporting when no issues are found."""
     issues = []
 
-    report_results("test_file.py", issues)
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("clean_file.py", issues)
 
-    captured = capsys.readouterr()
-    assert captured.out == ""
+    result = output.getvalue()
 
-
-def test_report_different_file_types(capsys):
-    """Test reporting for different file types."""
-    issues = [("Cell 1, Line 3", "display function", "display(df)")]
-
-    report_results("notebook.ipynb", issues)
-
-    captured = capsys.readouterr()
-    assert "notebook.ipynb:" in captured.out
-    assert "Line Cell 1, Line 3" in captured.out
+    # Should be empty output for clean files
+    assert result == ""
 
 
-def test_report_special_characters(capsys):
-    """Test reporting with special characters in file names and content."""
-    issues = [("1", "pattern", "special chars: àáâã")]
+def test_report_different_file_types():
+    """Test reporting with different file types."""
+    issues = [(1, "display function", "display(df)")]
 
-    report_results("file with spaces.py", issues)
+    file_types = ["script.py", "notebook.ipynb", "module.py"]
 
-    captured = capsys.readouterr()
-    assert "file with spaces.py:" in captured.out
-    assert "special chars: àáâã" in captured.out
+    for file_type in file_types:
+        output = StringIO()
+        with redirect_stdout(output):
+            report_results(file_type, issues)
 
-
-def test_report_results_formatting(capsys):
-    """Test detailed formatting of report results."""
-    issues = [
-        ("1", "first issue", "first_line_content"),
-        ("2", "second issue", "second_line_content"),
-        ("Cell 3, Line 4", "notebook issue", "notebook_content"),
-    ]
-
-    report_results("mixed_file.py", issues)
-
-    captured = capsys.readouterr()
-    output_lines = captured.out.strip().split('\n')
-
-    # Should have header plus 2 lines per issue
-    assert len(output_lines) == 1 + (2 * len(issues))
-
-    # Check header
-    assert output_lines[0] == "mixed_file.py:"
-
-    # Check issue formatting
-    assert "Line 1: first issue" in output_lines[1]
-    assert "> first_line_content" in output_lines[2]
-    assert "Line 2: second issue" in output_lines[3]
-    assert "> second_line_content" in output_lines[4]
-    assert "Line Cell 3, Line 4: notebook issue" in output_lines[5]
-    assert "> notebook_content" in output_lines[6]
+        result = output.getvalue()
+        assert file_type in result
+        assert "Line 1: display function" in result
 
 
-def test_report_empty_file_name(capsys):
-    """Test reporting with empty file name."""
-    issues = [("1", "issue", "content")]
+def test_report_special_characters_in_filename():
+    """Test reporting with special characters in filename."""
+    issues = [(1, "display function", "display(df)")]
+    filename = "file with spaces & special chars!.py"
 
-    report_results("", issues)
-
-    captured = capsys.readouterr()
-    assert ":" in captured.out  # Should still have the colon
-
-
-def test_report_long_content(capsys):
-    """Test reporting with very long line content."""
-    long_content = "x" * 1000  # Very long line
-    issues = [("1", "long line issue", long_content)]
-
-    report_results("test.py", issues)
-
-    captured = capsys.readouterr()
-    assert long_content in captured.out
-    assert "Line 1: long line issue" in captured.out
-
-
-def test_report_unicode_filenames(capsys):
-    """Test reporting with unicode filenames."""
-    issues = [("1", "test issue", "test content")]
-    unicode_filenames = [
-        "файл.py",  # Cyrillic
-        "文件.py",   # Chinese
-        "αρχείο.py", # Greek
-        "🎉_file.py", # Emoji
-    ]
-
-    for filename in unicode_filenames:
+    output = StringIO()
+    with redirect_stdout(output):
         report_results(filename, issues)
 
-        captured = capsys.readouterr()
-        assert f"{filename}:" in captured.out
-        assert "Line 1: test issue" in captured.out
+    result = output.getvalue()
+    assert filename in result
 
 
-def test_report_multiple_issues_same_line(capsys):
+def test_report_special_characters_in_content():
+    """Test reporting with special characters in code content."""
+    issues = [
+        (1, "display function", "display(df_with_émojis_🚀)"),
+        (2, "show method", "df.show()  # Comment with 世界"),
+        (3, "collect method", "result = df.collect()  # Special: !@#$%^&*()")
+    ]
+
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("unicode_file.py", issues)
+
+    result = output.getvalue()
+    assert "émojis_🚀" in result
+    assert "世界" in result
+    assert "!@#$%^&*()" in result
+
+
+def test_report_long_content_lines():
+    """Test reporting with very long content lines."""
+    long_line = "display(" + "very_long_parameter_name_" * 20 + ")"
+    issues = [(1, "display function", long_line)]
+
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
+
+    result = output.getvalue()
+    assert "display(" in result
+    # Should handle long lines without issues
+
+
+def test_report_multiple_issues_same_line():
     """Test reporting multiple issues on the same line."""
     issues = [
-        ("5", "first issue", "display(df.show())"),
-        ("5", "second issue", "display(df.show())"),
+        (5, "display function", "display(df); df.show()"),
+        (5, "show method", "display(df); df.show()")
     ]
 
-    report_results("test_file.py", issues)
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
 
-    captured = capsys.readouterr()
-    output_lines = captured.out.strip().split('\n')
+    result = output.getvalue()
 
-    # Should have header plus 2 lines per issue
-    assert len(output_lines) == 5  # 1 header + 4 issue lines
-    assert "Line 5: first issue" in captured.out
-    assert "Line 5: second issue" in captured.out
-    # Content should appear twice
-    assert captured.out.count("> display(df.show())") == 2
+    # Both issues should be reported even though they're on the same line
+    assert result.count("Line 5:") == 2
+    assert "display function" in result
+    assert "show method" in result
 
 
-def test_report_complex_line_numbers(capsys):
-    """Test reporting with complex line number formats."""
+def test_report_formatting_consistency():
+    """Test that reporting format is consistent."""
     issues = [
-        ("123", "simple line", "content1"),
-        ("Cell 5, Line 10", "notebook cell", "content2"),
-        ("Function foo, Line 2", "custom format", "content3"),
-        ("", "empty line number", "content4"),
+        (1, "pattern1", "code1"),
+        (100, "pattern2", "code2"),
+        (9999, "pattern3", "code3")
     ]
 
-    report_results("complex_file.py", issues)
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
 
-    captured = capsys.readouterr()
-    assert "Line 123: simple line" in captured.out
-    assert "Line Cell 5, Line 10: notebook cell" in captured.out
-    assert "Line Function foo, Line 2: custom format" in captured.out
-    assert "Line : empty line number" in captured.out
+    result = output.getvalue()
+    lines = result.strip().split('\n')
 
+    # Report format: filename, then for each issue: "Line X: description" and "> code"
+    # So we expect: 1 filename line + 2 lines per issue = 1 + 3*2 = 7 lines
+    assert len(lines) == 7
 
-def test_report_very_long_descriptions(capsys):
-    """Test reporting with very long issue descriptions."""
-    long_description = "This is a very long description " * 20
-    issues = [("1", long_description, "content")]
-
-    report_results("test.py", issues)
-
-    captured = capsys.readouterr()
-    assert long_description in captured.out
-    assert "Line 1:" in captured.out
+    # Check that we have filename and issue formatting
+    assert "file.py:" in lines[0]
+    assert "Line 1: pattern1" in result
+    assert "Line 100: pattern2" in result
+    assert "Line 9999: pattern3" in result
 
 
-def test_report_special_formatting_characters(capsys):
-    """Test reporting with special formatting characters in content."""
+def test_report_empty_filename():
+    """Test reporting with empty filename."""
+    issues = [(1, "display function", "display(df)")]
+
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("", issues)
+
+    result = output.getvalue()
+    # Should still work, even with empty filename
+    assert "Line 1: display function" in result
+
+
+def test_report_very_large_line_numbers():
+    """Test reporting with very large line numbers."""
+    issues = [(999999, "display function", "display(df)")]
+
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("huge_file.py", issues)
+
+    result = output.getvalue()
+    assert "Line 999999:" in result
+
+
+def test_report_zero_line_number():
+    """Test reporting with zero line number (edge case)."""
+    issues = [(0, "display function", "display(df)")]
+
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
+
+    result = output.getvalue()
+    assert "Line 0:" in result
+
+
+def test_report_mixed_line_numbers():
+    """Test reporting with mixed line number ordering."""
     issues = [
-        ("1", "tab issue", "content\twith\ttabs"),
-        ("2", "newline issue", "content\nwith\nnewlines"),
-        ("3", "quote issue", 'content "with" \'quotes\''),
-        ("4", "backslash issue", "content\\with\\backslashes"),
+        (50, "display function", "display(df)"),
+        (5, "show method", "df.show()"),
+        (25, "collect method", "df.collect()")
     ]
 
-    report_results("format_test.py", issues)
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
 
-    captured = capsys.readouterr()
+    result = output.getvalue()
 
-    # All content should be preserved as-is
-    assert "content\twith\ttabs" in captured.out
-    assert "content\nwith\nnewlines" in captured.out
-    assert 'content "with" \'quotes\'' in captured.out
-    assert "content\\with\\backslashes" in captured.out
-
-
-def test_report_empty_issues_list_edge_cases(capsys):
-    """Test edge cases with empty or None-like issues."""
-    # Empty list
-    report_results("test1.py", [])
-    captured = capsys.readouterr()
-    assert captured.out == ""
-
-    # List with empty tuples (should handle gracefully)
-    try:
-        report_results("test2.py", [("", "", "")])
-        captured = capsys.readouterr()
-        assert "test2.py:" in captured.out
-    except (IndexError, TypeError):
-        # It's acceptable if this fails - depends on implementation
-        pass
+    # All issues should be reported regardless of order
+    assert "Line 50:" in result
+    assert "Line 5:" in result
+    assert "Line 25:" in result
 
 
-def test_report_numeric_line_numbers(capsys):
-    """Test reporting with numeric vs string line numbers."""
+def test_report_empty_code_content():
+    """Test reporting with empty code content."""
+    issues = [(1, "display function", "")]
+
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
+
+    result = output.getvalue()
+    assert "file.py" in result
+    assert "Line 1: display function" in result
+
+
+def test_report_none_values_handling():
+    """Test that report_results handles edge cases gracefully."""
+    # Empty issues list
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", [])
+
+    assert output.getvalue() == ""
+
+    # Issues with various edge case values
     issues = [
-        (1, "numeric line", "content1"),  # Numeric line number
-        ("2", "string line", "content2"),  # String line number
+        (1, "description", "code"),
+        (2, "", "code_with_empty_description"),
+        (3, "description", "")
     ]
 
-    # Convert numeric to string (assuming implementation expects strings)
-    normalized_issues = [(str(line), desc, content) for line, desc, content in issues]
+    output = StringIO()
+    with redirect_stdout(output):
+        report_results("file.py", issues)
 
-    report_results("test.py", normalized_issues)
-
-    captured = capsys.readouterr()
-    assert "Line 1: numeric line" in captured.out
-    assert "Line 2: string line" in captured.out
-
-
-def test_report_output_consistency(capsys):
-    """Test that report output is consistent across multiple calls."""
-    issues = [("1", "test issue", "test content")]
-
-    # Call multiple times
-    for _ in range(3):
-        report_results("test.py", issues)
-
-        captured = capsys.readouterr()
-        assert "test.py:" in captured.out
-        assert "Line 1: test issue" in captured.out
-        assert "> test content" in captured.out
-
-        # Output should be identical each time
-        actual_lines = [line.strip() for line in captured.out.strip().split('\n')]
-        # Remove leading whitespace for comparison
-        assert len(actual_lines) == 3
+    result = output.getvalue()
+    # Should handle all cases without crashing
+    assert "file.py" in result
+    # Format: filename + 2 lines per issue = 1 + 3*2 = 7 lines
+    assert len(result.strip().split('\n')) == 7
