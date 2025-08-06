@@ -1,0 +1,23 @@
+# About Code Owners:https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global code owners
+* @leandroasaservice/admins
+
+# Protect .github folder - only admins can modify
+/.github/ @leandroasaservice/admins
+
+# Protect CI/CD and security files
+/.github/workflows/ @leandroasaservice/admins
+/.github/CODEOWNERS @leandroasaservice/admins
+/.github/ISSUE_TEMPLATE/ @leandroasaservice/admins
+/sonar-project.properties @leandroasaservice/admins
+/.pre-commit-config.yaml @leandroasaservice/admins
+/.pre-commit-hooks.yaml @leandroasaservice/admins
+
+# Protect build and configuration files
+/pyproject.toml @leandroasaservice/admins
+/requirements.txt @leandroasaservice/admins
+/ruff.toml @leandroasaservice/admins
+
+# Protect sonar-project.properties
+/sonar-project.properties @leandroasaservice/admins

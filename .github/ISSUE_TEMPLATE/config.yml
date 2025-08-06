@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/leandroasaservice/sparkgrep/tree/main/doc
+    about: Check our comprehensive documentation for setup guides and tutorials
+  - name: 💬 GitHub Discussions
+    url: https://github.com/leandroasaservice/sparkgrep/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Advisory
+    url: https://github.com/leandroasaservice/sparkgrep/security/advisories/new
+    about: Report security vulnerabilities privately (for critical security issues)

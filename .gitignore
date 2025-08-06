@@ -176,3 +176,10 @@ taskfile.yaml
 
 # Custom folders
 .ignore
+.scannerwork
+
+# Ruff
+ruff-report.json
+
+# Bandit
+bandit-report.json

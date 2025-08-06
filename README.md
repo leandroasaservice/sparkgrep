@@ -1,30 +1,41 @@
-# SparkGrep - Debugging Leftovers Detector for Apache Spark Application Developers
+# SparkGrep
 
-A pre-commit hook that detects and prevents common debugging leftovers in Apache Spark applications from being committed to your repository and reaching Production environments. Works with any Spark environment including Databricks, EMR, Dataproc, and local development.
+![Static Badge](https://img.shields.io/badge/preview-red)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=coverage)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=bugs)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=sparkgrep&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=sparkgrep)
+[![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Security: Bandit](https://img.shields.io/badge/security-bandit-greenb.svg)](https://github.com/PyCQA/bandit)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Features
+Pre-commit hook that detects debugging leftovers in Apache Spark applications.
 
-- Detects commondebugging leftovers:
-  - `display()` function calls.
-  - `.display()` method calls.
-  - `.show()` method calls.
-  - `.collect()` calls without assignment.
-  - `.count()` calls without assignment.
-  - `.toPandas()` calls without assignment.
-  - `dbutils.notebook.exit()` calls.
+## 🎯 Purpose
 
-- Supports both Python (.py) and Jupyter notebook (.ipynb) files.
-- Respects docstrings and comments (skips them).
-- Configurable with custom patterns.
-- Works with any Spark environment (Databricks, EMR, Dataproc, local).
+SparkGrep helps maintain clean Apache Spark codebases by detecting common debugging leftovers and performance anti-patterns that developers often forget to remove before committing code.
 
-## Quick Start
+## 🔍 What it Detects
 
-### Installation
+- **`display()` calls** - Jupyter/Databricks debugging function
+- **`.show()` methods** - DataFrame inspection calls
+- **`.collect()` without assignment** - Potential performance issues
+- **`.count()` without assignment** - Unnecessary computations
+- **Custom patterns** - User-defined patterns via configuration
+
+## 🚀 Installation
 
 ```bash
-pip install -e .
+pip install sparkgrep
 ```
+
+## 📋 Usage
 
 ### As a Pre-commit Hook
 
@@ -32,120 +43,185 @@ Add to your `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
- - repo: https://github.com/leandroasaservice/sparkgrep
-   rev: v0.1.0a0
-   hooks:
-   - id: sparkgrep
-     name: Check for debugging leftovers.
-     files: \.(py|ipynb)$
-
+  - repo: https://github.com/leandroasaservice/sparkgrep
+    rev: v0.1.0a0  # Use this preview version.
+    hooks:
+      - id: sparkgrep
 ```
 
-### Standalone Usage
+### Command Line
 
 ```bash
-# Check single file
-sparkgrep my_notebook.py
+# Check specific files
+sparkgrep src/my_script.py notebook.ipynb
 
-# Check multiple files
-sparkgrep file1.py file2.ipynb
+# Check with additional patterns
+sparkgrep --additional-patterns "debug_print:Debug print statement" src/
 
-# With custom patterns
-sparkgrep --additional-patterns "custom_debug():Custom debug function" file.py
-
-# Disable default patterns
-sparkgrep --disable-default-patterns --additional-patterns "pattern:desc" file.py
+# Disable default patterns and use only custom ones
+sparkgrep --disable-default-patterns --additional-patterns "my_pattern:My description" src/
 ```
 
-## Configuration
+### Configuration
 
-### Default Patterns
+Create a `.sparkgrep.json` file in your project root:
 
-The tool detects these patterns by default:
+```json
+{
+  "additional_patterns": [
+    "logger\\.debug\\(.*\\):Debug logging statement",
+    "print\\(.*\\):Print statement"
+  ],
+  "disable_default_patterns": false
+}
+```
 
-1. `display()` function calls
-2. `.display()` method calls
-3. `.show()` method calls
-4. `.collect()` without assignment
-5. `.count()` without assignment
-6. `.toPandas()` without assignment
-7. `dbutils.notebook.exit()` calls
+## 🛡️ Security & Quality
 
-### Custom Patterns
+This project maintains high security and code quality standards:
 
-You can add custom patterns using the `--additional-patterns` option:
+### 🔒 Security Measures
+
+- **Daily security scans** with Bandit, Safety, and GitGuardian
+- **Automated vulnerability detection** and issue creation
+- **Admin-protected CI/CD** pipelines
+- **Dependency vulnerability monitoring**
+
+### 📊 Code Quality
+
+- **80% minimum code coverage** enforced in CI
+- **SonarCloud integration** for continuous code quality analysis
+- **Automated testing** on every PR
+- **Code formatting** with Ruff
+
+### 🚦 CI/CD Pipeline
+
+The CI pipeline runs automatically on:
+
+- **Pull requests to main** (requires admin approval)
+- **Manual dispatch** (admin-only)
+
+Pipeline includes:
+
+- Comprehensive test suite with 80% coverage requirement
+- Security scans (Bandit, Safety, GitGuardian)
+- Code quality analysis (SonarCloud)
+- Linting and formatting checks
+
+**Quality Gates:**
+
+- ❌ **Pipeline fails** if coverage < 80%
+- ❌ **Pipeline fails** if critical vulnerabilities found
+- ✅ **Pipeline passes** only when all checks succeed
+
+## 🧪 Development
+
+### Setup
 
 ```bash
-sparkgrep --additional-patterns "spark\.sql.*\.show():SQL show without assignment" file.py
+# Clone the repository
+git clone https://github.com/leandroasaservice/sparkgrep.git
+cd sparkgrep
+
+# Install in development mode
+pip install -e .
+pip install -r requirements.txt
+
+# Install pre-commit hooks
+pre-commit install
 ```
 
-### Disable Default Patterns
-
-Use `--disable-default-patterns` to use only custom patterns:
+### Running Tests
 
 ```bash
-sparkgrep --disable-default-patterns --additional-patterns "custom:Custom pattern" file.py
+# Run all tests with coverage
+task test
+
+# Run specific test categories
+task test:unit
+task test:integration
+
+# Generate coverage report
+task test:cov
 ```
 
-## Examples
-
-### What Gets Caught
-
-```python
-# ❌ These will be flagged
-display(df)  # Spark display function
-df.display()  # DataFrame display method
-df.show()  # DataFrame show method
-df.collect()  # without assignment
-df.count()  # without assignment
-df.toPandas()  # without assignment
-dbutils.notebook.exit()  # Databricks-specific
-
-# ✅ These are OK
-result = df.collect()  # assigned
-row_count = df.count()  # assigned
-pandas_df = df.toPandas()  # assigned
-df.show(10)  # This will still be flagged - all show() calls are detected
-
-# ✅ These are ignored (in comments/docstrings)
-# display(df)  # This is ignored
-```
-
-### Jupyter Notebook Support
-
-The tool processes Jupyter notebooks and reports issues with cell locations:
-
-```shell
-notebook.ipynb:
-  Cell 2, Line 3: display() function call
-    > display(df)
-  Cell 5, Line 1: .show() method call
-    > df.show()
-```
-
-## Exit Codes
-
-- **0**: No issues found (success)
-- **1**: Issues found (failure - will block commit)
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](doc/CONTRIBUTING.md) for detailed information on how to contribute to SparkGrep.
-
-### Using Task (Optional)
-
-We provide a [taskfile.dist.yaml](https://taskfile.dev/) for easier development workflows. Copy it to `Taskfile.yml` or `taskfile.yaml` and customize as needed. If you have Task installed, you can use commands like:
+### Security Scanning
 
 ```bash
-task setup          # Set up development environment
-task test           # Run tests
-task fix            # Auto-fix linting and formatting
-task quality        # Run all quality checks
-task --list         # See all available commands
+# Run security scans locally
+bandit -r src/
+safety check
+ggshield secret scan ci  # Requires GitGuardian API key
 ```
 
-To install Task, see: [https://taskfile.dev/installation/](https://taskfile.dev/installation/)
+### Code Quality
 
-## License
+```bash
+# Format code
+ruff format .
 
-This project is licensed under the MIT License.
+# Lint code
+ruff check .
+
+# Type checking (if using mypy)
+mypy src/
+```
+
+## 📁 Project Structure
+
+```sh
+sparkgrep/
+├── src/sparkgrep/          # Main package
+│   ├── cli.py              # Command-line interface
+│   ├── patterns.py         # Pattern definitions
+│   ├── file_processors.py  # File processing logic
+│   └── utils.py            # Utility functions
+├── tests/                  # Test suite
+│   ├── unit/               # Unit tests
+│   └── integration/        # Integration tests
+├── .github/                # GitHub configuration
+│   ├── workflows/          # CI/CD pipelines
+│   └── ISSUE_TEMPLATE/     # Issue templates
+└── docs/                   # Documentation
+```
+
+## 🤝 Contributing
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Make** your changes with tests
+4. **Ensure** all checks pass (`task test`, security scans)
+5. **Submit** a pull request
+
+### Contribution Guidelines
+
+- **Tests required** for all new features
+- **Security scans** must pass
+- **Code coverage** must remain ≥ 80%
+- **Admin approval** required for all PRs to main
+- **Follow** existing code style and patterns
+See [CONTRIBUTING.md](doc/CONTRIBUTING.md) for details.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔒 Security
+
+For security vulnerabilities, please:
+
+1. **Create a security issue** using our [security template](.github/ISSUE_TEMPLATE/security_report.md)
+2. **Contact maintainers** directly for critical issues
+3. **Follow responsible disclosure** practices
+
+Our security measures include automated daily scans and continuous monitoring.
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/leandroasaservice/sparkgrep/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/leandroasaservice/sparkgrep/discussions)
+- **Documentation**: [Project Docs](doc/)
+
+---
+
+**Made with ❤️ for the Apache Spark community**
