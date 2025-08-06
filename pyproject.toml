@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sparkgrep"
-version = "0.1.0a0"
+version = "0.1.0a1"
 description = "Pre-commit hooks for Apache Spark development (Databricks, EMR, Dataproc, and more)"
 license = {text = "MIT"}
 authors = [

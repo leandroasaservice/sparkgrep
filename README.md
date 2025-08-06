@@ -21,7 +21,7 @@ Pre-commit hook that detects debugging leftovers in Apache Spark applications.
 
 SparkGrep helps maintain clean Apache Spark codebases by detecting common debugging leftovers and performance anti-patterns that developers often forget to remove before committing code.
 
-## 🔍 What it Detects
+### 🔍 What it Detects
 
 - **`display()` calls** - Jupyter/Databricks debugging function
 - **`.show()` methods** - DataFrame inspection calls
@@ -44,7 +44,7 @@ Add to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/leandroasaservice/sparkgrep
-    rev: v0.1.0a0  # Use this preview version.
+    rev: v0.1.0a1  # Use this preview version.
     hooks:
       - id: sparkgrep
 ```
@@ -62,19 +62,7 @@ sparkgrep --additional-patterns "debug_print:Debug print statement" src/
 sparkgrep --disable-default-patterns --additional-patterns "my_pattern:My description" src/
 ```
 
-### Configuration
-
-Create a `.sparkgrep.json` file in your project root:
-
-```json
-{
-  "additional_patterns": [
-    "logger\\.debug\\(.*\\):Debug logging statement",
-    "print\\(.*\\):Print statement"
-  ],
-  "disable_default_patterns": false
-}
-```
+----
 
 ## 🛡️ Security & Quality
 
@@ -94,78 +82,9 @@ This project maintains high security and code quality standards:
 - **Automated testing** on every PR
 - **Code formatting** with Ruff
 
-### 🚦 CI/CD Pipeline
+----
 
-The CI pipeline runs automatically on:
 
-- **Pull requests to main** (requires admin approval)
-- **Manual dispatch** (admin-only)
-
-Pipeline includes:
-
-- Comprehensive test suite with 80% coverage requirement
-- Security scans (Bandit, Safety, GitGuardian)
-- Code quality analysis (SonarCloud)
-- Linting and formatting checks
-
-**Quality Gates:**
-
-- ❌ **Pipeline fails** if coverage < 80%
-- ❌ **Pipeline fails** if critical vulnerabilities found
-- ✅ **Pipeline passes** only when all checks succeed
-
-## 🧪 Development
-
-### Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/leandroasaservice/sparkgrep.git
-cd sparkgrep
-
-# Install in development mode
-pip install -e .
-pip install -r requirements.txt
-
-# Install pre-commit hooks
-pre-commit install
-```
-
-### Running Tests
-
-```bash
-# Run all tests with coverage
-task test
-
-# Run specific test categories
-task test:unit
-task test:integration
-
-# Generate coverage report
-task test:cov
-```
-
-### Security Scanning
-
-```bash
-# Run security scans locally
-bandit -r src/
-safety check
-ggshield secret scan ci  # Requires GitGuardian API key
-```
-
-### Code Quality
-
-```bash
-# Format code
-ruff format .
-
-# Lint code
-ruff check .
-
-# Type checking (if using mypy)
-mypy src/
-```
 
 ## 📁 Project Structure
 
@@ -205,16 +124,6 @@ See [CONTRIBUTING.md](doc/CONTRIBUTING.md) for details.
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔒 Security
-
-For security vulnerabilities, please:
-
-1. **Create a security issue** using our [security template](.github/ISSUE_TEMPLATE/security_report.md)
-2. **Contact maintainers** directly for critical issues
-3. **Follow responsible disclosure** practices
-
-Our security measures include automated daily scans and continuous monitoring.
 
 ## 📞 Support
 

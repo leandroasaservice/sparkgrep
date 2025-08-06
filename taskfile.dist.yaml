@@ -90,12 +90,6 @@ tasks:
       - test:cov
       - lint:report
       - security
-    cmds:
-      - echo "📊 Reports generated for SonarCloud:"
-      - echo "  📄 Coverage: coverage.xml"
-      - echo "  📄 Tests: pytest-report.xml"
-      - echo "  📄 Ruff: ruff-report.json"
-      - echo "  📄 Bandit: bandit-report.json"
 
   fix:
     desc: "Auto-fix linting and formatting issues"
