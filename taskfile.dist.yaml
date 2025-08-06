@@ -43,13 +43,24 @@ tasks:
   test:cov:
     desc: "Run tests with coverage report"
     cmds:
-      - "{{.VENV_DIR}}/bin/pytest {{.TESTS_DIR}}/ --cov={{.SRC_DIR}} --cov-report=term-missing --cov-report=html"
+      - "{{.VENV_DIR}}/bin/pytest {{.TESTS_DIR}}/ --cov=sparkgrep --cov-report=term-missing --cov-report=html --cov-report=xml"
 
   # Code Quality
   lint:
     desc: "Run ruff linting (check only)"
     cmds:
       - "{{.VENV_DIR}}/bin/ruff check {{.SRC_DIR}}/"
+
+  lint:report:
+    desc: "Run ruff linting and generate JSON report for SonarCloud"
+    cmds:
+      - "{{.VENV_DIR}}/bin/ruff check {{.SRC_DIR}}/ --output-format=json --output-file=ruff-report.json || true"
+
+  security:
+    desc: "Run security scan with Bandit"
+    cmds:
+      - "{{.VENV_DIR}}/bin/bandit -r {{.SRC_DIR}}/ -f json -o bandit-report.json || true"
+      - "{{.VENV_DIR}}/bin/bandit -r {{.SRC_DIR}}/"
 
   lint:fix:
     desc: "Run ruff linting with auto-fix"
@@ -72,6 +83,19 @@ tasks:
       - lint
       - format:check
       - test
+
+  sonar:
+    desc: "Generate all reports for SonarCloud analysis"
+    deps:
+      - test:cov
+      - lint:report
+      - security
+    cmds:
+      - echo "📊 Reports generated for SonarCloud:"
+      - echo "  📄 Coverage: coverage.xml"
+      - echo "  📄 Tests: pytest-report.xml"
+      - echo "  📄 Ruff: ruff-report.json"
+      - echo "  📄 Bandit: bandit-report.json"
 
   fix:
     desc: "Auto-fix linting and formatting issues"
