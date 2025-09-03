@@ -8,6 +8,7 @@
 
 # Protect CI/CD and security files
 /.github/workflows/ @leandroasaservice/admins
+/.github/scripts/ @leandroasaservice/admins
 /.github/CODEOWNERS @leandroasaservice/admins
 /.github/ISSUE_TEMPLATE/ @leandroasaservice/admins
 /sonar-project.properties @leandroasaservice/admins
