@@ -18,10 +18,10 @@ Thank you for your interest in contributing to SparkGrep! This document provides
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.12 or higher (3.12 is used in CI)
 - Git
 - Virtual environment (recommended)
-- [Task](https://taskfile.dev/) (optional but recommended for easier development)
+- [Task](https://taskfile.dev/) (recommended for development commands)
 
 ### Fork and Clone
 
@@ -40,16 +40,14 @@ Thank you for your interest in contributing to SparkGrep! This document provides
 If you have [Task](https://taskfile.dev/) installed:
 
 ```bash
-# First, copy the task configuration
-cp taskfile.dist.yaml Taskfile.yml
+# Create virtual environment
+task venv
 
-# Set up everything at once
-task setup
+# Build and install package in development mode
+task build:install
 
-# Or run individual steps
-task install
-task install:dev
-task pre-commit:install
+# Verify installation
+task run:sample
 ```
 
 ### Option 2: Manual Setup
@@ -64,21 +62,19 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ### 2. Install Dependencies
 
 ```bash
-pip install -e .
-pip install pytest pytest-cov pytest-mock
+# Install package dependencies
+pip install -r requirements.txt
+
+# Build and install package
+python -m build
+pip install dist/*.whl
 ```
 
-### 3. Install Pre-commit Hooks
+### 3. Verify Installation
 
 ```bash
-pre-commit install
-```
-
-### 4. Verify Installation
-
-```bash
+# Test the installation
 sparkgrep --help
-sparkgrep sample.py
 ```
 
 ## Project Structure
@@ -137,24 +133,24 @@ git checkout -b bugfix/issue-description
 # Run all tests
 task test
 
-# Run with coverage
-task test:cov
-
-# Run all quality checks
+# Run all quality checks (security, lint, format, test)
 task quality
+
+# Run security scan only
+task security
 ```
 
 **Manual commands:**
 
 ```bash
 # Run all tests
-pytest tests/
+.venv/bin/python -m pytest
 
 # Run with coverage
-pytest tests/ --cov=src --cov-report=html
+.venv/bin/python -m pytest --cov=sparkgrep --cov-report=html
 
 # Run specific test modules
-pytest tests/test_patterns.py -v
+.venv/bin/python -m pytest tests/unit/patterns/test_pattern_definitions.py -v
 ```
 
 ## Adding New Patterns
@@ -271,6 +267,9 @@ task fix
 # Check linting only
 task lint
 
+# Generate linting report for SonarCloud
+task lint:report
+
 # Format code only
 task format
 
@@ -282,16 +281,16 @@ task format:check
 
 ```bash
 # Format all code
-ruff format src/
+.venv/bin/ruff format src/
 
 # Check and fix linting issues
-ruff check src/ --fix
+.venv/bin/ruff check src/ --fix
 
 # Check only (no fixes)
-ruff check src/
+.venv/bin/ruff check src/
 
-# Run both linting and formatting
-ruff check src/ --fix && ruff format src/
+# Security scan
+.venv/bin/bandit -r src/
 ```
 
 ### Code Quality Standards
@@ -328,11 +327,12 @@ def check_line_for_patterns(line: str, patterns: List[Tuple[str, str]]) -> List[
 
 ### 1. Before Submitting
 
-- [ ] Tests pass: `task test` or `pytest tests/`
-- [ ] Code formatted and linted: `task fix` or `ruff check src/ --fix && ruff format src/`
-- [ ] Coverage maintained: `task test:cov` or `pytest tests/ --cov=src`
+- [ ] All quality checks pass: `task quality`
+- [ ] Tests pass: `task test`
+- [ ] Code formatted and linted: `task fix`
+- [ ] Security scan passes: `task security`
 - [ ] Documentation updated (if needed)
-- [ ] Changelog entry added (if applicable)
+- [ ] Package builds successfully: `task build:install`
 
 ### 2. Pull Request Template
 

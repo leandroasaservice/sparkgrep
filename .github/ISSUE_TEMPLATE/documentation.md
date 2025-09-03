@@ -10,6 +10,7 @@ assignees: ''
 ## 📚 Documentation Issue
 
 **Type of documentation improvement:**
+
 - [ ] Fix incorrect information
 - [ ] Add missing information
 - [ ] Improve clarity/readability
@@ -22,6 +23,7 @@ assignees: ''
 ## 📍 Location
 
 **Which documentation needs improvement?**
+
 - [ ] README.md
 - [ ] CLI help text (`sparkgrep --help`)
 - [ ] API documentation
@@ -47,7 +49,8 @@ assignees: ''
 <!-- Describe the current problem with the documentation -->
 
 **Current content** (if applicable):
-```
+
+```plaintext
 Paste the current documentation text that needs improvement
 ```
 
@@ -60,11 +63,13 @@ Paste the current documentation text that needs improvement
 <!-- Describe what should be changed or added -->
 
 **Proposed content:**
-```
+
+```plaintext
 Write the improved documentation content here
 ```
 
 **Additional context to include:**
+
 - [ ] Code examples
 - [ ] Command-line examples
 - [ ] Configuration examples
@@ -77,6 +82,7 @@ Write the improved documentation content here
 ## 🎯 Target Audience
 
 **Who would benefit from this improvement?**
+
 - [ ] New users getting started
 - [ ] Experienced users seeking advanced features
 - [ ] System administrators
@@ -85,6 +91,7 @@ Write the improved documentation content here
 - [ ] Troubleshooting specific issues
 
 **User experience level:**
+
 - [ ] Beginner (new to SparkGrep/Spark)
 - [ ] Intermediate (familiar with CLI tools)
 - [ ] Advanced (power users, customization)
@@ -96,11 +103,13 @@ Write the improved documentation content here
 <!-- Describe a specific situation where better documentation would help -->
 
 **Step-by-step example:**
+
 1. <!-- User action 1 -->
 2. <!-- User action 2 -->
 3. <!-- Expected outcome -->
 
 **Common questions this would answer:**
+
 - <!-- Question 1 -->
 - <!-- Question 2 -->
 - <!-- Question 3 -->
@@ -108,12 +117,14 @@ Write the improved documentation content here
 ## 🔧 Technical Details
 
 **CLI commands to document:**
+
 ```bash
 # Commands that need better documentation
 sparkgrep [command options]
 ```
 
 **Configuration examples:**
+
 ```json
 {
   "example": "configuration that needs documentation"
@@ -121,7 +132,8 @@ sparkgrep [command options]
 ```
 
 **Expected output format:**
-```
+
+```plaintext
 Show what users should expect to see
 ```
 

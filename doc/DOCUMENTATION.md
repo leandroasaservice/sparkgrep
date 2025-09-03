@@ -32,9 +32,10 @@ This pre-commit hook is designed for Apache Spark development environments to au
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.12 or higher (3.12 is used in CI)
 - Git repository initialized
 - pip package manager
+- [Task](https://taskfile.dev/) (recommended for development)
 
 ### Step-by-Step Installation
 
@@ -44,28 +45,28 @@ This pre-commit hook is designed for Apache Spark development environments to au
     pip install pre-commit
     ```
 
-2. **Install project dependencies**:
+2. **Set up development environment**:
 
     ```bash
-    pip install -r requirements.txt
+    # Using Task (recommended)
+    task venv
+    task build:install
+
+    # Or manually
+    python3 -m venv .venv
+    .venv/bin/pip install -r requirements.txt
+    .venv/bin/python -m build
+    .venv/bin/pip install dist/*.whl
     ```
 
-3. **Make the script executable**:
+3. **Verify installation**:
 
     ```bash
-    chmod +x src/*
-    ```
+    # Test the package
+    sparkgrep --help
 
-4. **Install git hooks**:
-
-    ```bash
-    pre-commit install
-    ```
-
-5. **Verify installation**:
-
-    ```bash
-    pre-commit run --all-files
+    # Run sample command
+    task run:sample  # or sparkgrep sample.py
     ```
 
 ## Default Patterns
@@ -411,14 +412,15 @@ Create a test notebook:
 sparkgrep tests/test_notebook.ipynb
 ```
 
-#### Test 5: Pre-commit Integration
+#### Test 5: Quality Integration
 
 ```bash
-# Test with pre-commit
-echo "display(df)" > test_commit.py
-git add test_commit.py
-git commit -m "Test commit"
-# Should be blocked by pre-commit hook
+# Test quality checks
+echo "display(df)" > test_file.py
+sparkgrep test_file.py  # Should find issues
+
+# Test with Task
+task quality  # Should run all quality checks
 ```
 
 ### Performance Testing
@@ -453,6 +455,10 @@ Create a comprehensive test runner:
 ```python
 # tests/run_tests.py
 #!/usr/bin/env python3
+"""
+Comprehensive test runner for SparkGrep.
+Tests all functionality including patterns, CLI, and quality checks.
+"""
 
 import subprocess
 import sys
@@ -717,11 +723,3 @@ for compiled_pattern, description in compiled_patterns:
 ## Contributing
 
 For detailed information on contributing to SparkGrep, including development setup, coding standards, and submission guidelines, please see our [Contributing Guide](CONTRIBUTING.md).
-
----
-
-**Version**: 0.1.0-pre-alpha
-
-**Last Updated**: 2025
-
-**Compatibility**: Python 3.8+, pre-commit 3.0+

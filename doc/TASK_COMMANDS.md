@@ -29,52 +29,47 @@ npm install -g @go-task/cli
 
 ## Available Commands
 
-### Setup and Installation
+### Environment Setup
 
 | Command | Description |
 |---------|-------------|
-| `task setup` | Set up complete development environment |
-| `task install` | Install package in development mode |
-| `task install:dev` | Install development dependencies |
+| `task venv` | Create Python virtual environment |
+| `task venv:recreate` | Recreate Python virtual environment |
+| `task env` | Show environment information |
 
 ### Testing
 
 | Command | Description |
 |---------|-------------|
-| `task test` | Run all tests |
-| `task test:cov` | Run tests with coverage report |
+| `task test` | Run all tests with pytest |
 
 ### Code Quality
 
 | Command | Description |
 |---------|-------------|
 | `task lint` | Run ruff linting (check only) |
+| `task lint:report` | Run ruff linting and generate JSON report |
 | `task lint:fix` | Run ruff linting with auto-fix |
 | `task format` | Format code with ruff |
 | `task format:check` | Check code formatting without changes |
-| `task quality` | Run all code quality checks |
+| `task security` | Run security scan with Bandit |
+| `task quality` | Run all code quality checks (security, lint, format:check, test) |
 | `task fix` | Auto-fix linting and formatting issues |
-
-### Pre-commit
-
-| Command | Description |
-|---------|-------------|
-| `task pre-commit:install` | Install pre-commit hooks |
-| `task pre-commit:run` | Run pre-commit on all files |
-| `task pre-commit:update` | Update pre-commit hook versions |
 
 ### Build and Package
 
 | Command | Description |
 |---------|-------------|
 | `task build` | Build package distribution |
-| `task build:clean` | Clean and rebuild package |
+| `task build:clean` | Clean build artifacts and rebuild |
+| `task build:install` | Clean build artifacts, rebuild and install in virtual environment |
+| `task build:recreate` | Clean cache, recreate environment, and build |
 
 ### Cleanup
 
 | Command | Description |
 |---------|-------------|
-| `task clean` | Clean build artifacts and cache files |
+| `task clean` | Clean up build artifacts, cache files, and temporary files |
 | `task clean:all` | Clean everything including virtual environment |
 
 ### Development Helpers
@@ -82,21 +77,19 @@ npm install -g @go-task/cli
 | Command | Description |
 |---------|-------------|
 | `task run:sample` | Run sparkgrep on sample.py |
-| `task shell` | Show command to activate virtual environment |
-| `task deps:update` | Update all dependencies |
+| `task env` | Show environment information |
 
-### CI/CD and Release
+### Release Management
 
 | Command | Description |
 |---------|-------------|
-| `task ci` | Simulate CI pipeline |
-| `task release:check` | Check if project is ready for release |
+| `task release:check` | Check if project is ready for release (runs clean:all, venv, build:install, quality) |
 
 ### Information
 
 | Command | Description |
 |---------|-------------|
-| `task info` | Show project information |
+| `task` (or `task default`) | Show available tasks |
 | `task env` | Show environment information |
 | `task --list` | List all available tasks |
 
@@ -105,20 +98,30 @@ npm install -g @go-task/cli
 ### New Contributor Setup
 
 ```bash
+# Copy task configuration
 cp taskfile.dist.yaml Taskfile.yml
-task setup
+
+# Create virtual environment and install dependencies
+task venv
+
+# Build and install package
+task build:install
 ```
 
 ### Before Committing
 
 ```bash
+# Auto-fix code issues
 task fix
-task test
+
+# Run all quality checks
+task quality
 ```
 
 ### Full Quality Check
 
 ```bash
+# Run comprehensive quality checks (security, lint, format, test)
 task quality
 ```
 
@@ -131,9 +134,15 @@ task release:check
 ### Clean Start
 
 ```bash
+# Clean everything and start fresh
 task clean:all
-cp taskfile.dist.yaml Taskfile.yml  # if needed
-task setup
+
+# Copy configuration (if needed)
+cp taskfile.dist.yaml Taskfile.yml
+
+# Set up environment
+task venv
+task build:install
 ```
 
 ## Manual Equivalents
@@ -142,11 +151,16 @@ If you prefer not to use Task, here are the manual command equivalents:
 
 | Task Command | Manual Equivalent |
 |-------------|-------------------|
-| `task setup` | `python3 -m venv .venv && .venv/bin/pip install -e .[dev] && .venv/bin/pre-commit install` |
-| `task test` | `.venv/bin/pytest tests/` |
+| `task venv` | `python3 -m venv .venv && .venv/bin/python -m pip install --upgrade pip && .venv/bin/python -m pip install -r requirements.txt` |
+| `task build` | `.venv/bin/python -m build` |
+| `task build:install` | `task build:clean && .venv/bin/python -m pip install dist/*.whl` |
+| `task test` | `.venv/bin/python -m pytest` |
+| `task lint` | `.venv/bin/ruff check src/` |
+| `task format` | `.venv/bin/ruff format src/` |
+| `task security` | `.venv/bin/bandit -r src/ -f json -o bandit-report.json \|\| true && .venv/bin/bandit -r src/` |
 | `task fix` | `.venv/bin/ruff check src/ --fix && .venv/bin/ruff format src/` |
-| `task quality` | `.venv/bin/ruff check src/ && .venv/bin/ruff format src/ --check && .venv/bin/pytest tests/` |
-| `task clean` | `rm -rf build/ dist/ *.egg-info/ .pytest_cache/ htmlcov/ .coverage .ruff_cache/` |
+| `task quality` | `task security && task lint && task format:check && task test` |
+| `task clean` | `rm -rf build/ dist/ *.egg-info/ .pytest_cache/ htmlcov/ .coverage .ruff-report.json coverage.xml .ruff_cache/ src/__pycache__/ tests/__pycache__/` |
 
 ## Benefits of Using Task
 

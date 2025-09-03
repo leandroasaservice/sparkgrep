@@ -70,7 +70,6 @@ This project maintains high security and code quality standards:
 
 ### 🔒 Security Measures
 
-- **Daily security scans** with Bandit, Safety, and GitGuardian
 - **Automated vulnerability detection** and issue creation
 - **Admin-protected CI/CD** pipelines
 - **Dependency vulnerability monitoring**
@@ -83,8 +82,6 @@ This project maintains high security and code quality standards:
 - **Code formatting** with Ruff
 
 ----
-
-
 
 ## 📁 Project Structure
 
@@ -109,7 +106,7 @@ sparkgrep/
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
 3. **Make** your changes with tests
-4. **Ensure** all checks pass (`task test`, security scans)
+4. **Ensure** all checks pass (`task quality`, `task test`)
 5. **Submit** a pull request
 
 ### Contribution Guidelines
@@ -131,6 +128,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions**: [GitHub Discussions](https://github.com/leandroasaservice/sparkgrep/discussions)
 - **Documentation**: [Project Docs](doc/)
 
----
+----
 
-**Made with ❤️ for the Apache Spark community**
+## Made with ❤️ for the Apache Spark community

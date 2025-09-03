@@ -18,18 +18,21 @@ SparkGrep is committed to maintaining the highest security standards. This docum
 ### Security Requirements
 
 #### For Pull Requests
+
 - ✅ **No critical or high vulnerabilities** allowed
 - ✅ **Admin approval** required for all PRs to main
 - ✅ **Security scans** must pass before merge
 - ✅ **Code review** by security-aware maintainers
 
 #### For Dependencies
+
 - ✅ **Vulnerability scanning** on every change
 - ✅ **Automated alerts** for new vulnerabilities
 - ✅ **Regular updates** of dependencies
 - ✅ **Minimal dependency** principle followed
 
 #### For Secrets Management
+
 - ✅ **No hardcoded secrets** in code
 - ✅ **GitHub Secrets** for sensitive data
 - ✅ **Secret rotation** procedures in place
