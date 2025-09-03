@@ -1,0 +1,184 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Actions to perform"
+        required: true
+        type: choice
+        options:
+          - ci-only
+          - deploy-test-pypi
+          - deploy-production-pypi
+        default: ci-only
+      reason:
+        description: "Reason for manual trigger"
+        required: false
+        default: "Manual trigger."
+
+permissions:
+  contents: write           # Required for creating tags and releases
+  pull-requests: read       # Required for PR approval checking
+  actions: read             # Required for downloading artifacts
+  issues: write             # Required for creating issues (rollback scenarios)
+  repository-projects: read # Required for project access
+  id-token: write           # Required for trusted publishing on PyPi
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.action || 'ci' }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      python-files-changed: ${{ steps.changes.outputs.python-files-changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in test-related files
+        id: changes
+        run: |
+          # Check if this is a manual workflow dispatch (always run tests)
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger - running all tests"
+            echo "python-files-changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # For push/PR events, check for changes in specific directories
+          if git diff --name-only HEAD~1 HEAD | grep -E '^(tests/|src/|requirements.txt)' > /dev/null; then
+            echo "Changes detected in test-related files"
+            echo "python-files-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes in test-related files"
+            echo "python-files-changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  ggshield-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better SonarCloud analysis
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: GitGuardian Scan
+        uses: GitGuardian/ggshield/actions/secret@v1.43.0
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  test-build:
+    needs: [check-changes, ggshield-scan]
+    runs-on: ubuntu-latest
+    if: needs.check-changes.outputs.python-files-changed == 'true'
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better SonarCloud analysis
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Python dependencies
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .venv
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('**requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-
+
+      - name: Install Task in OS.
+        run: sudo snap install task --classic
+
+      - name: Create virtual environment (if cache miss)
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: task venv
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(python -c "import tomllib; f=open('pyproject.toml','rb'); data=tomllib.load(f); print(data['project']['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Build & Install.
+        run: task build:install
+
+      - name: Run tests
+        run: task test
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-packages-${{ steps.version.outputs.version }}
+          path: dist/
+          retention-days: 15
+
+      - name: Tagging
+        if: github.event.inputs.action == 'deploy-test-pypi' || github.event.inputs.action == 'deploy-production-pypi'
+        run: |
+          chmod +x .github/scripts/create-git-tag.sh
+          .github/scripts/create-git-tag.sh "${{ steps.version.outputs.version }}" "${{ github.event.inputs.action }}"
+
+
+  delivery-package:
+    needs: [test-build]
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.action == 'deploy-test-pypi' || github.event.inputs.action == 'deploy-production-pypi')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: distribution-packages-${{ needs.build.outputs.version }}
+          path: dist/
+
+      - name: Upload to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: github.event.inputs.action == 'deploy-test-pypi'
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: github.event.inputs.action == 'deploy-production-pypi'

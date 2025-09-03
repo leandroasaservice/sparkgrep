@@ -13,37 +13,68 @@ tasks:
     desc: "Show available tasks"
     cmds:
       - task --list
+    # Release helpers
+  release:check:
+    desc: "Check if project is ready for release"
+    cmds:
+      - echo "=== Release Readiness Check ==="
+      - task: clean:all
+      - task: venv
+      - task: build:install
+      - task: quality
+      - echo "=== Release checks passed ==="
 
-  # Setup and Installation
-  setup:
-    desc: "Set up development environment"
+  quality:
+    desc: "Run all code quality checks"
+    deps:
+      - security
+      - lint
+      - format:check
+      - test
+
+  venv:
+    desc: "Creates Python Virtual Environment."
     cmds:
       - "{{.PYTHON}} -m venv {{.VENV_DIR}}"
-      - "{{.VENV_DIR}}/bin/pip install --upgrade pip"
-      - task: install
-      - task: install:dev
-      - task: pre-commit:install
+      - "{{.VENV_DIR}}/bin/python -m pip install --upgrade pip"
+      - "{{.VENV_DIR}}/bin/python -m pip install -r requirements.txt"
 
-  install:
-    desc: "Install package in development mode"
+  venv:recreate:
+    desc: "Recreates Python virtual environment."
     cmds:
-      - "{{.VENV_DIR}}/bin/pip install -e ."
+      - "rm -rf {{.VENV_DIR}}"
+      - task: venv
 
-  install:dev:
-    desc: "Install development dependencies"
+  # Build
+  build:
+    desc: "Build package distribution"
     cmds:
-      - "{{.VENV_DIR}}/bin/pip install -e .[dev]"
+      - "{{.VENV_DIR}}/bin/python -m build"
+
+  build:clean:
+    desc: "Clean build artifacts and rebuild"
+    cmds:
+      - task: clean
+      - task: build
+
+  build:install:
+    desc: "Clean build artifacts, rebuild it and install in virtual environment."
+    cmds:
+      - task: build:clean
+      - "{{.VENV_DIR}}/bin/python -m pip install dist/*.whl"
+
+  build:recreate:
+    desc: "Clean cache, recreate environment, and build."
+    cmds:
+      - task: clean
+      - task: venv:recreate
+      - task: build:install
 
   # Testing
   test:
     desc: "Run tests"
     cmds:
-      - "{{.VENV_DIR}}/bin/pytest {{.TESTS_DIR}}/"
-
-  test:cov:
-    desc: "Run tests with coverage report"
-    cmds:
-      - "{{.VENV_DIR}}/bin/pytest {{.TESTS_DIR}}/ --cov=sparkgrep --cov-report=term-missing --cov-report=html --cov-report=xml"
+      - "{{.VENV_DIR}}/bin/python -m pytest"
 
   # Code Quality
   lint:
@@ -55,12 +86,6 @@ tasks:
     desc: "Run ruff linting and generate JSON report for SonarCloud"
     cmds:
       - "{{.VENV_DIR}}/bin/ruff check {{.SRC_DIR}}/ --output-format=json --output-file=ruff-report.json || true"
-
-  security:
-    desc: "Run security scan with Bandit"
-    cmds:
-      - "{{.VENV_DIR}}/bin/bandit -r {{.SRC_DIR}}/ -f json -o bandit-report.json || true"
-      - "{{.VENV_DIR}}/bin/bandit -r {{.SRC_DIR}}/"
 
   lint:fix:
     desc: "Run ruff linting with auto-fix"
@@ -77,53 +102,18 @@ tasks:
     cmds:
       - "{{.VENV_DIR}}/bin/ruff format {{.SRC_DIR}}/ --check"
 
-  quality:
-    desc: "Run all code quality checks"
-    deps:
-      - lint
-      - format:check
-      - test
 
-  sonar:
-    desc: "Generate all reports for SonarCloud analysis"
-    deps:
-      - test:cov
-      - lint:report
-      - security
+  security:
+    desc: "Run security scan with Bandit"
+    cmds:
+      - "{{.VENV_DIR}}/bin/bandit -r {{.SRC_DIR}}/ -f json -o bandit-report.json || true"
+      - "{{.VENV_DIR}}/bin/bandit -r {{.SRC_DIR}}/"
 
   fix:
     desc: "Auto-fix linting and formatting issues"
     cmds:
       - task: lint:fix
       - task: format
-
-  # Pre-commit
-  pre-commit:install:
-    desc: "Install pre-commit hooks"
-    cmds:
-      - "{{.VENV_DIR}}/bin/pre-commit install"
-
-  pre-commit:run:
-    desc: "Run pre-commit on all files"
-    cmds:
-      - "{{.VENV_DIR}}/bin/pre-commit run --all-files"
-
-  pre-commit:update:
-    desc: "Update pre-commit hook versions"
-    cmds:
-      - "{{.VENV_DIR}}/bin/pre-commit autoupdate"
-
-  # Build and Package
-  build:
-    desc: "Build package distribution"
-    cmds:
-      - "{{.VENV_DIR}}/bin/python -m build"
-
-  build:clean:
-    desc: "Clean build artifacts and rebuild"
-    cmds:
-      - task: clean
-      - task: build
 
   # Utility Tasks
   clean:
@@ -135,6 +125,8 @@ tasks:
       - rm -rf .pytest_cache/
       - rm -rf htmlcov/
       - rm -rf .coverage
+      - rm -rf .ruff-report.json
+      - rm -rf coverage.xml
       - rm -rf .ruff_cache/
       - rm -rf src/__pycache__/
       - rm -rf tests/__pycache__/
@@ -150,46 +142,6 @@ tasks:
     desc: "Run sparkgrep on sample.py"
     cmds:
       - "{{.VENV_DIR}}/bin/sparkgrep sample.py"
-
-  shell:
-    desc: "Show command to activate virtual environment"
-    cmds:
-      - echo "To activate virtual environment run:"
-      - echo "source {{.VENV_DIR}}/bin/activate"
-
-  deps:update:
-    desc: "Update all dependencies to latest versions"
-    cmds:
-      - "{{.VENV_DIR}}/bin/pip install --upgrade pip"
-      - "{{.VENV_DIR}}/bin/pip install --upgrade -e .[dev]"
-
-  # CI/CD simulation
-  ci:
-    desc: "Run CI pipeline simulation (what CI would run)"
-    cmds:
-      - echo "=== Running CI Pipeline ==="
-      - task: quality
-      - task: build
-      - echo "=== CI Pipeline Complete ==="
-
-  # Release helpers
-  release:check:
-    desc: "Check if project is ready for release"
-    cmds:
-      - echo "=== Release Readiness Check ==="
-      - task: clean
-      - task: quality
-      - task: build
-      - echo "=== Release checks passed ==="
-
-  # Help and Info
-  info:
-    desc: "Show project information"
-    cmds:
-      - echo "=== SparkGrep Project Information ==="
-      - "{{.PYTHON}} --version"
-      - "{{.VENV_DIR}}/bin/pip --version"
-      - "{{.VENV_DIR}}/bin/sparkgrep --help"
 
   env:
     desc: "Show environment information"
