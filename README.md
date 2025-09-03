@@ -44,7 +44,7 @@ Add to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/leandroasaservice/sparkgrep
-    rev: v0.1.0a1  # Use this preview version.
+    rev: v0.1.1a1  # Use this preview version.
     hooks:
       - id: sparkgrep
 ```
