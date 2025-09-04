@@ -58,7 +58,14 @@ jobs:
           fi
 
           # For push/PR events, check for changes in specific directories
-          if git diff --name-only HEAD~1 HEAD | grep -E '^(tests/|src/|requirements.txt)' > /dev/null; then
+          # Use different git diff for PRs vs pushes
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          fi
+
+          if echo "$CHANGED_FILES" | grep -E '^(tests/|src/|requirements.txt)' > /dev/null; then
             echo "Changes detected in test-related files"
             echo "python-files-changed=true" >> $GITHUB_OUTPUT
           else
@@ -68,6 +75,7 @@ jobs:
 
   ggshield-scan:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -85,7 +93,7 @@ jobs:
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
   test-build:
-    needs: [check-changes, ggshield-scan]
+    needs: [check-changes]
     runs-on: ubuntu-latest
     if: needs.check-changes.outputs.python-files-changed == 'true'
     strategy:
@@ -138,11 +146,13 @@ jobs:
         run: task test
 
       - name: SonarQube Scan
+        if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Upload build artifacts
+        if: github.event.inputs.action == 'deploy-test-pypi' || github.event.inputs.action == 'deploy-production-pypi'
         uses: actions/upload-artifact@v4
         with:
           name: distribution-packages-${{ steps.version.outputs.version }}
