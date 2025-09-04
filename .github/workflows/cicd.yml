@@ -170,7 +170,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: distribution-packages-${{ needs.build.outputs.version }}
+          name: distribution-packages-${{ needs.test-build.outputs.version }}
           path: dist/
 
       - name: Upload to Test PyPI
